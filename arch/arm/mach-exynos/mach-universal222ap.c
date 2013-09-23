@@ -68,6 +68,10 @@
 #include <linux/secgpio_dvs.h>
 #endif
 
+#ifdef CONFIG_KEXEC_HARDBOOT
+#include <asm/kexec.h>
+#endif
+
 static struct platform_device ramconsole_device = {
 	.name	= "ram_console",
 	.id	= -1,
@@ -592,7 +596,15 @@ static void __init smdk4270_map_io(void)
 static struct persistent_ram_descriptor smdk3470_prd[] __initdata = {
         {
                 .name = "ram_console",
+#ifdef CONFIG_KEXEC_HARDBOOT
+                .size = KEXEC_HB_PAGE_ADDR - PLAT_PHYS_OFFSET + SZ_512M + SZ_256M,
+       },
+       {
+                .name = "kexec_hb_page",
+                .size = SZ_2M - (KEXEC_HB_PAGE_ADDR - PLAT_PHYS_OFFSET + SZ_512M + SZ_256M),
+#else
                 .size = SZ_2M,
+#endif
         },
 #ifdef CONFIG_PERSISTENT_TRACER
         {

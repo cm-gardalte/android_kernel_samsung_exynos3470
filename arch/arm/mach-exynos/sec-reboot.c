@@ -10,6 +10,10 @@
 #if defined(CONFIG_SAMSUNG_MUIC)
 #include <linux/power_supply.h>
 
+#ifdef CONFIG_KEXEC_HARDBOOT
+#include <asm/kexec.h>
+#endif
+
 extern bool is_cable_attached;
 #endif /* CONFIG_SAMSUNG_MUIC */
 
@@ -165,10 +169,24 @@ static void sec_reboot(char str, const char *cmd)
 		;
 }
 
+#ifdef CONFIG_KEXEC_HARDBOOT
+static void sec_kexec_hardboot(void)
+{
+	/* Don't enter lpm mode */
+	writel(0x12345678, EXYNOS_INFORM2);
+
+	/* Reboot with boot kernel */
+	writel(REBOOT_MODE_PREFIX|REBOOT_MODE_NONE, EXYNOS_INFORM3);
+}
+#endif
+
 static int __init sec_reboot_init(void)
 {
 	pm_power_off = sec_power_off;
 	arm_pm_restart = sec_reboot;
+#ifdef CONFIG_KEXEC_HARDBOOT
+	kexec_hardboot_hook = sec_kexec_hardboot;
+#endif
 
 	return 0;
 }
